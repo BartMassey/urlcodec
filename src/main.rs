@@ -1,7 +1,10 @@
-use std::io::{Read, Write};
+mod urlcodec;
+use urlcodec::*;
+
+//use std::io::{Read, Write};
+use std::collections::HashSet;
 
 use clap::{Parser, CommandFactory};
-use urlencoding::{Encoded, decode_binary};
 
 #[derive(Parser)]
 struct Args {
@@ -20,17 +23,18 @@ fn urlcodec() -> Result<(), Box<dyn std::error::Error>> {
         ).into());
     }
 
+    let preserve: HashSet<char> = ('a'..='z')
+        .chain('A'..='Z')
+        .chain('0'..='9')
+        .chain(":/?,-.".chars())
+        .collect();
+
     let mut stdin = std::io::stdin().lock();
     let mut stdout = std::io::stdout().lock();
     if args.encode {
-        let mut input = String::new();
-        stdin.read_to_string(&mut input)?;
-        let encoded = Encoded::new(&input);
-        encoded.write(&mut stdout)?;
+        url_encode_stream(preserve, &mut stdin, &mut stdout)?;
     } else {
-        let mut input = Vec::new();
-        stdin.read_to_end(&mut input)?;
-        stdout.write_all(decode_binary(&input).as_ref())?;
+        url_decode_stream(&mut stdin, &mut stdout)?;
     }
     Ok(())
 }
