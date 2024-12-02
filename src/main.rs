@@ -9,6 +9,8 @@ use clap::Parser;
 struct Args {
     #[arg(short, long, help="urldecode")]
     decode: bool,
+    #[arg(short, long, help="characters to preserve (always alphanumerics)", default_value=":/?,-.")]
+    preserve: String,
 }
 
 fn urlcodec() -> Result<(), Box<dyn std::error::Error>> {
@@ -17,7 +19,7 @@ fn urlcodec() -> Result<(), Box<dyn std::error::Error>> {
     let preserve: HashSet<char> = ('a'..='z')
         .chain('A'..='Z')
         .chain('0'..='9')
-        .chain(":/?,-.".chars())
+        .chain(args.preserve.chars())
         .collect();
 
     let mut stdin = std::io::stdin().lock();
